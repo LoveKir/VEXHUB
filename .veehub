@@ -1,0 +1,361 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+
+
+local Window = Rayfield:CreateWindow({
+   Name = "VEXHUB",
+   LoadingTitle = "VEXHUB",
+   LoadingSubtitle = "BY: VEEXXK",
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "VEXHUB"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "Key",
+      Subtitle = "Key System",
+      Note = "KEY SEMENTARA 'momok' ",
+      FileName = "MOMOK", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"momok"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local MainTab = Window:CreateTab("PLAYER", nil) -- Title, Image
+local MainSection = MainTab:CreateSection("Main")
+
+Rayfield:Notify({
+   Title = "GG",
+   Content = "8===D",
+   Duration = 5,
+   Image = nil,
+   Actions = { -- Notification Buttons
+      Ignore = {
+         Name = "Okay!",
+         Callback = function()
+         print("The user tapped Okay!")
+      end
+   },
+},
+})
+
+local Button = MainTab:CreateButton({
+   Name = "Infinite Jump Toggle",
+   Callback = function()
+       --Toggles the infinite jump between on or off on every script run
+_G.infinjump = not _G.infinjump
+
+if _G.infinJumpStarted == nil then
+	--Ensures this only runs once to save resources
+	_G.infinJumpStarted = true
+	
+	--Notifies readiness
+	game.StarterGui:SetCore("SendNotification", {Title="VEXHUB"; Text="Infinite Jump Activated!"; Duration=5;})
+
+	--The actual infinite jump
+	local plr = game:GetService('Players').LocalPlayer
+	local m = plr:GetMouse()
+	m.KeyDown:connect(function(k)
+		if _G.infinjump then
+			if k:byte() == 32 then
+			humanoid = game:GetService'Players'.LocalPlayer.Character:FindFirstChildOfClass('Humanoid')
+			humanoid:ChangeState('Jumping')
+			wait()
+			humanoid:ChangeState('Seated')
+			end
+		end
+	end)
+end
+   end,
+})
+
+local Slider = MainTab:CreateSlider({
+   Name = "WalkSpeed Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderws", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
+   end,
+})
+
+local Slider = MainTab:CreateSlider({
+   Name = "JumpPower Slider",
+   Range = {1, 350},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
+   end,
+})
+
+
+local Input = MainTab:CreateInput({
+   Name = "Walkspeed",
+   PlaceholderText = "1-500",
+   RemoveTextAfterFocusLost = true,
+   Callback = function(Text)
+        local speed = tonumber(Text)
+        if speed then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speed
+        else
+            warn("Masukkan angka valid untuk WalkSpeed.")
+        end
+   end,
+})
+
+
+local TPTab = Window:CreateTab("TELEPORT", nil) -- Title, Image
+
+local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
+
+-- Fungsi umum untuk teleport ke checkpoint
+local function teleportToCheckpoint(cpName)
+	local player = game.Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
+
+	if checkpoint then
+		-- Teleport dengan sedikit offset biar nggak nyangkut
+		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 3, 0)
+		print("Teleported to:", cpName)
+	else
+		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
+	end
+end
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP0",
+	Callback = function()
+		teleportToCheckpoint("CP0") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP1",
+	Callback = function()
+		teleportToCheckpoint("CP1") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP2",
+	Callback = function()
+		teleportToCheckpoint("CP2") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP3",
+	Callback = function()
+		teleportToCheckpoint("CP3") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP4",
+	Callback = function()
+		teleportToCheckpoint("CP4") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP5",
+	Callback = function()
+		teleportToCheckpoint("CP5") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP6",
+	Callback = function()
+		teleportToCheckpoint("CP6") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP7",
+	Callback = function()
+		teleportToCheckpoint("CP7") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP8",
+	Callback = function()
+		teleportToCheckpoint("CP8") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button1 = TPTab:CreateButton({
+	Name = "CP9",
+	Callback = function()
+		teleportToCheckpoint("CP9") -- Ganti sesuai nama part checkpoint kamu
+	end,
+})
+
+local Button2 = TPTab:CreateButton({
+	Name = "CP10",
+	Callback = function()
+		teleportToCheckpoint("CP10") -- contoh CP10
+	end,
+})
+
+local Button3 = TPTab:CreateButton({
+	Name = "CP11",
+	Callback = function()
+		teleportToCheckpoint("CP11") -- langsung teleport ke checkpoint 11
+	end,
+})
+
+local TPTab = Window:CreateTab("FARM", nil) -- Title, Image
+
+local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
+
+-- Fungsi teleport ke checkpoint
+local function teleportToCheckpoint(cpName)
+	local player = game.Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
+
+	if checkpoint then
+		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 2, 0)
+		print("Teleported to:", cpName)
+	else
+		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
+	end
+end
+
+-- Cari checkpoint terdekat dengan posisi pemain
+local function getNearestCheckpoint()
+	local player = game.Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+
+	local nearestCP, nearestDist, nearestIndex = nil, math.huge, 0
+
+	for i = 0, 11 do
+		local cp = checkpointsFolder:FindFirstChild("CP" .. i)
+		if cp then
+			local dist = (cp.Position - hrp.Position).Magnitude
+			if dist < nearestDist then
+				nearestDist = dist
+				nearestCP = cp
+				nearestIndex = i
+			end
+		end
+	end
+
+	return nearestIndex, nearestCP
+end
+
+
+-- =====================================================
+-- AUTO TELEPORT LOOP DARI CP SAAT INI SAMPAI CP11 → ULANG KE CP0
+-- =====================================================
+
+local autoTeleport = false
+
+local AutoButton = TPTab:CreateButton({
+	Name = "Start / Stop Auto Teleport (SLOW",
+	Callback = function()
+		autoTeleport = not autoTeleport
+
+		if autoTeleport then
+			print("Auto teleport loop dimulai...")
+
+			task.spawn(function()
+				while autoTeleport do
+					-- Cari CP terdekat
+					local startIndex = getNearestCheckpoint()
+					print("Mulai dari CP" .. startIndex)
+
+					-- Teleport dari CP sekarang sampai CP11
+					for i = startIndex, 11 do
+						if not autoTeleport then break end
+						local cpName = "CP" .. i
+						teleportToCheckpoint(cpName)
+						task.wait(2)
+					end
+
+					-- Kembali ke CP0 setelah CP11
+					if autoTeleport then
+						for i = 0, startIndex - 1 do
+							if not autoTeleport then break end
+							local cpName = "CP" .. i
+							teleportToCheckpoint(cpName)
+							task.wait(2)
+						end
+					end
+				end
+			end)
+
+		else
+			print("Auto teleport loop dihentikan.")
+		end
+	end,
+})
+
+local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
+
+-- Fungsi teleport ke checkpoint
+local function teleportToCheckpoint(cpName)
+	local player = game.Players.LocalPlayer
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:WaitForChild("HumanoidRootPart")
+	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
+
+	if checkpoint then
+		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 2, 0)
+		print("Teleported to:", cpName)
+	else
+		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
+	end
+end
+
+
+-- =====================================================
+-- AUTO TELEPORT LOOP LANGSUNG CP0 ↔ CP11 TANPA MELEWATI CP LAIN
+-- =====================================================
+
+local autoTeleportFast = false
+
+local AutoButton3 = TPTab:CreateButton({
+	Name = "Start / Stop Auto Teleport (FAST!!)",
+	Callback = function()
+		autoTeleportFast = not autoTeleportFast
+
+		if autoTeleportFast then
+			print("Auto teleport CP0 ↔ CP11 dimulai...")
+
+			task.spawn(function()
+				while autoTeleportFast do
+					-- Teleport ke CP0
+					teleportToCheckpoint("CP0")
+					task.wait(2) -- jeda 2 detik
+					
+					-- Teleport ke CP11
+					if not autoTeleportFast then break end
+					teleportToCheckpoint("CP11")
+					task.wait(2) -- jeda 2 detik
+				end
+			end)
+
+		else
+			print("Auto teleport CP0 ↔ CP11 dihentikan.")
+		end
+	end,
+})
