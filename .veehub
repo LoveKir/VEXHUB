@@ -270,7 +270,7 @@ end
 local autoTeleport = false
 
 local AutoButton = TPTab:CreateButton({
-	Name = "Start / Stop Auto Teleport (SLOW",
+	Name = "Start / Stop Auto Teleport (SLOW~)",
 	Callback = function()
 		autoTeleport = not autoTeleport
 
