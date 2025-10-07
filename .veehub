@@ -3,13 +3,13 @@ local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/Love
 
 
 local Window = Rayfield:CreateWindow({
-   Name = "VEXHUB",
-   LoadingTitle = "VEXHUB",
+   Name = "VEXHUB V2",
+   LoadingTitle = "VEXHUB V2",
    LoadingSubtitle = "BY: VEEXXK",
    ConfigurationSaving = {
       Enabled = false,
       FolderName = nil, -- Create a custom folder for your hub/game
-      FileName = "VEXHUB"
+      FileName = "VEXHUB V2"
    },
    Discord = {
       Enabled = false,
@@ -88,19 +88,6 @@ local Slider = MainTab:CreateSlider({
    end,
 })
 
-local Slider = MainTab:CreateSlider({
-   Name = "JumpPower Slider",
-   Range = {1, 350},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "sliderjp", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = (Value)
-   end,
-})
-
-
 local Input = MainTab:CreateInput({
    Name = "Walkspeed",
    PlaceholderText = "1-500",
@@ -115,255 +102,185 @@ local Input = MainTab:CreateInput({
    end,
 })
 
+local TPTab = Window:CreateTab("TELEPORT", nil)
 
-local TPTab = Window:CreateTab("TELEPORT", nil) -- Title, Image
+-- ✅ SETUP DASAR
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local checkpointsFolder = workspace:WaitForChild("Checkpoints")
 
-local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
+local autoFly = false
+local speed = 35 -- 🐢 kecepatan terbang (semakin kecil semakin lambat)
+local reachDistance = 5 -- jarak agar dianggap sudah sampai
 
--- Fungsi umum untuk teleport ke checkpoint
-local function teleportToCheckpoint(cpName)
-	local player = game.Players.LocalPlayer
-	local character = player.Character or player.CharacterAdded:Wait()
-	local hrp = character:WaitForChild("HumanoidRootPart")
-	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
-
-	if checkpoint then
-		-- Teleport dengan sedikit offset biar nggak nyangkut
-		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 3, 0)
-		print("Teleported to:", cpName)
-	else
-		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
+-- ============================================================
+-- 🚫 NON COLLISION SYSTEM
+-- ============================================================
+local function setCharacterCollision(state)
+	local char = player.Character or player.CharacterAdded:Wait()
+	for _, part in ipairs(char:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = state
+		end
 	end
 end
 
-local Button1 = TPTab:CreateButton({
-	Name = "CP0",
-	Callback = function()
-		teleportToCheckpoint("CP0") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP1",
-	Callback = function()
-		teleportToCheckpoint("Checkpoint1") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP2",
-	Callback = function()
-		teleportToCheckpoint("CP2") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP3",
-	Callback = function()
-		teleportToCheckpoint("CP3") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP4",
-	Callback = function()
-		teleportToCheckpoint("CP4") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP5",
-	Callback = function()
-		teleportToCheckpoint("CP5") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP6",
-	Callback = function()
-		teleportToCheckpoint("CP6") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP7",
-	Callback = function()
-		teleportToCheckpoint("C") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP8",
-	Callback = function()
-		teleportToCheckpoint("Checkpoint8") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button1 = TPTab:CreateButton({
-	Name = "CP9",
-	Callback = function()
-		teleportToCheckpoint("CP9") -- Ganti sesuai nama part checkpoint kamu
-	end,
-})
-
-local Button2 = TPTab:CreateButton({
-	Name = "CP10",
-	Callback = function()
-		teleportToCheckpoint("CP10") -- contoh CP10
-	end,
-})
-
-local Button3 = TPTab:CreateButton({
-	Name = "CP11",
-	Callback = function()
-		teleportToCheckpoint("CP11") -- langsung teleport ke checkpoint 11
-	end,
-})
-
-local TPTab = Window:CreateTab("FARM", nil) -- Title, Image
-
-local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
-
--- Fungsi teleport ke checkpoint
-local function teleportToCheckpoint(cpName)
-	local player = game.Players.LocalPlayer
-	local character = player.Character or player.CharacterAdded:Wait()
-	local hrp = character:WaitForChild("HumanoidRootPart")
-	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
-
-	if checkpoint then
-		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 2, 0)
-		print("Teleported to:", cpName)
-	else
-		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
-	end
+-- ============================================================
+-- 📍 CHECKPOINT SYSTEM
+-- ============================================================
+local function getHRP()
+	local char = player.Character or player.CharacterAdded:Wait()
+	return char:WaitForChild("HumanoidRootPart"), char
 end
 
--- Cari checkpoint terdekat dengan posisi pemain
 local function getNearestCheckpoint()
-	local player = game.Players.LocalPlayer
-	local character = player.Character or player.CharacterAdded:Wait()
-	local hrp = character:WaitForChild("HumanoidRootPart")
-
-	local nearestCP, nearestDist, nearestIndex = nil, math.huge, 0
-
-	for i = 0, 11 do
-		local cp = checkpointsFolder:FindFirstChild("CP" .. i)
+	local hrp = getHRP()
+	local nearestIndex, nearestDist = 1, math.huge
+	for i = 1, 11 do
+		local cp = checkpointsFolder:FindFirstChild("Checkpoint" .. i)
 		if cp then
 			local dist = (cp.Position - hrp.Position).Magnitude
 			if dist < nearestDist then
 				nearestDist = dist
-				nearestCP = cp
 				nearestIndex = i
 			end
 		end
 	end
-
-	return nearestIndex, nearestCP
+	return nearestIndex
 end
 
+-- ============================================================
+-- ✈️ TERBANG HALUS (NO MUTER + TEMBUS TEMBOK)
+-- ============================================================
+local function flySmoothTo(cpName)
+	local hrp, char = getHRP()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
+	if not checkpoint then return end
 
--- =====================================================
--- AUTO TELEPORT LOOP DARI CP SAAT INI SAMPAI CP11 → ULANG KE CP0
--- =====================================================
+	local targetPos = checkpoint.Position + Vector3.new(0, 2, 0) -- sedikit di atas biar kena checkpoint
+	local direction = (targetPos - hrp.Position).Unit
 
-local autoTeleport = false
+	-- Nonaktifkan physics agar tidak jatuh
+	hum:ChangeState(Enum.HumanoidStateType.Physics)
 
+	-- Tambahkan BodyVelocity untuk gerakan halus
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(4000, 4000, 4000)
+	bv.Velocity = direction * speed
+	bv.Parent = hrp
+
+	while autoFly and (targetPos - hrp.Position).Magnitude > reachDistance do
+		hrp.CFrame = CFrame.new(hrp.Position, targetPos)
+		RunService.Heartbeat:Wait()
+	end
+
+	bv:Destroy()
+	hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+	hrp.CFrame = CFrame.new(targetPos)
+end
+
+-- ============================================================
+-- 🔘 TOMBOL AUTO FLY
+-- ============================================================
 local AutoButton = TPTab:CreateButton({
-	Name = "Start / Stop Auto Teleport (SLOW)",
+	Name = "START / STOP AUTO FLY + NOCLIP",
 	Callback = function()
-		autoTeleport = not autoTeleport
+		autoFly = not autoFly
 
-		if autoTeleport then
-			print("Auto teleport loop dimulai...")
+		if autoFly then
+			print("🕊️ Auto fly dimulai... (Tembus tembok aktif)")
+			setCharacterCollision(false)
 
 			task.spawn(function()
-				while autoTeleport do
-					-- Cari CP terdekat
+				while autoFly do
 					local startIndex = getNearestCheckpoint()
-					print("Mulai dari CP" .. startIndex)
+					local nextIndex = startIndex + 1
+					if nextIndex > 11 then nextIndex = 1 end
 
-					-- Teleport dari CP sekarang sampai CP11
-					for i = startIndex, 11 do
-						if not autoTeleport then break end
-						local cpName = "CP" .. i
-						teleportToCheckpoint(cpName)
-						task.wait(2)
+					for i = nextIndex, 11 do
+						if not autoFly then break end
+						flySmoothTo("Checkpoint" .. i)
+						task.wait(1)
 					end
 
-					-- Kembali ke CP0 setelah CP11
-					if autoTeleport then
-						for i = 0, startIndex - 1 do
-							if not autoTeleport then break end
-							local cpName = "CP" .. i
-							teleportToCheckpoint(cpName)
-							task.wait(2)
+					if autoFly and startIndex > 1 then
+						for i = 1, startIndex - 1 do
+							if not autoFly then break end
+							flySmoothTo("Checkpoint" .. i)
+							task.wait(1)
 						end
 					end
 				end
 			end)
-
 		else
-			print("Auto teleport loop dihentikan.")
+			print("❌ Auto fly dihentikan. Collision diaktifkan kembali.")
+			setCharacterCollision(true)
 		end
+        loadstring(game:HttpGet("https://obj.wearedevs.net/197981/scripts/roblox%20noclip%20GUI.lua"))()
 	end,
 })
 
-local checkpointsFolder = workspace:WaitForChild("Checkpoints") -- Ganti sesuai nama folder kamu
 
--- Fungsi teleport ke checkpoint
+
+
+-- ✅ AUTO TELEPORT
+local autoTeleport = false
+
 local function teleportToCheckpoint(cpName)
-	local player = game.Players.LocalPlayer
 	local character = player.Character or player.CharacterAdded:Wait()
 	local hrp = character:WaitForChild("HumanoidRootPart")
 	local checkpoint = checkpointsFolder:FindFirstChild(cpName)
 
 	if checkpoint then
-		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 2, 0)
-		print("Teleported to:", cpName)
-	else
-		warn("Checkpoint", cpName, "tidak ditemukan di Workspace.")
+		-- langsung teleport di atas checkpoint sedikit
+		hrp.CFrame = checkpoint.CFrame + Vector3.new(0, 3, 0)
 	end
 end
 
-
--- =====================================================
--- AUTO TELEPORT LOOP LANGSUNG CP0 ↔ CP11 TANPA MELEWATI CP LAIN
--- =====================================================
-
-local autoTeleportFast = false
-
-local AutoButton3 = TPTab:CreateButton({
-	Name = "Start / Stop Auto Teleport (FAST!!)",
+local AutoTPButton = TPTab:CreateButton({
+	Name = "START / STOP FARM INSTANT",
 	Callback = function()
-		autoTeleportFast = not autoTeleportFast
+		autoTeleport = not autoTeleport
 
-		if autoTeleportFast then
-			print("Auto teleport CP0 ↔ CP11 dimulai...")
+		if autoTeleport then
+			print("⚡ Auto teleport instant dimulai... (Cooldown 1 detik)")
 
 			task.spawn(function()
-				while autoTeleportFast do
-					-- Teleport ke CP0
-					teleportToCheckpoint("CP0")
-					task.wait(2) -- jeda 2 detik
-					
-					-- Teleport ke CP11
-					if not autoTeleportFast then break end
-					teleportToCheckpoint("CP11")
-					task.wait(2) -- jeda 2 detik
+				while autoTeleport do
+					local startIndex = getNearestCheckpoint()
+					print("Mulai dari Checkpoint" .. startIndex)
+
+					local nextIndex = startIndex + 1
+					if nextIndex > 11 then nextIndex = 1 end
+
+					-- Maju dari checkpoint sekarang ke Checkpoint11
+					for i = nextIndex, 11 do
+						if not autoTeleport then break end
+						local cpName = "Checkpoint" .. i
+						teleportToCheckpoint(cpName)
+						print("Teleport ke " .. cpName)
+						task.wait(1) -- cooldown antar teleport
+					end
+
+					-- Balik dari Checkpoint1 ke startIndex - 1
+					if autoTeleport and startIndex > 1 then
+						for i = 1, startIndex - 1 do
+							if not autoTeleport then break end
+							local cpName = "Checkpoint" .. i
+							teleportToCheckpoint(cpName)
+							print("Teleport ke " .. cpName)
+							task.wait(1)
+						end
+					end
 				end
 			end)
-
 		else
-			print("Auto teleport CP0 ↔ CP11 dihentikan.")
+			print("❌ Auto teleport instant dihentikan.")
 		end
 	end,
 })
-
-
--- =====================================================
--- TROOOOOOOOOLLLLLLLLLLLLLL
--- =====================================================
 
 
 
@@ -858,16 +775,185 @@ Message("Loaded", "VEXHUB", 3)
     end,
 })
 
--- =====================================================
--- TROOOOOOOOOLLLLLLLLLLLLLL
--- =====================================================
 
 
 
-local AdminTab = Window:CreateTab("ADMIN", nil) -- Title, Image
-local Button1 = AdminTab:CreateButton({
-	Name = "INF YIELD",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
-	end,
+-- ============================================================
+-- 👥 TELEPORT KE PLAYER + REFRESH LIST
+-- ============================================================
+
+
+-- Robust Teleport to Player (fixed callbacks + safe refresh)
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+
+-- Safe tab creation (gunakan Window jika tersedia)
+local TpPlayerTab
+if Window and type(Window.CreateTab) == "function" then
+    TpPlayerTab = Window:CreateTab("TELEPORT PLAYER", nil)
+else
+    -- fallback dummy UI supaya script tidak error (UI disabled)
+    TpPlayerTab = {
+        CreateDropdown = function(opts)
+            -- fake dropdown object with SetOptions method
+            local obj = {}
+            function obj:SetOptions(_) end
+            return obj
+        end,
+        CreateButton = function(_) return end
+    }
+    warn("Window tidak tersedia — TELEPORT PLAYER dibuat fallback (tanpa UI).")
+end
+
+-- UI state
+local dropdownPlayers = nil
+local selectedPlayer = nil
+
+-- Return array of player-names (exclude local)
+local function getPlayerNames()
+    local names = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= player then
+            table.insert(names, p.Name)
+        end
+    end
+    if #names == 0 then table.insert(names, "❌ Tidak ada player lain") end
+    return names
+end
+
+-- Safe updater untuk dropdown
+local function updatePlayerDropdown()
+    local ok, names = pcall(getPlayerNames)
+    if not ok then
+        warn("[TP] Gagal ambil player names:", names)
+        return
+    end
+
+    if dropdownPlayers and type(dropdownPlayers.SetOptions) == "function" then
+        local s, e = pcall(function() dropdownPlayers:SetOptions(names) end)
+        if not s then warn("[TP] SetOptions gagal:", e) end
+    else
+        warn("[TP] dropdownPlayers tidak tersedia atau tidak mendukung SetOptions.")
+    end
+
+    -- reset selectedPlayer jika sudah tidak ada
+    local exists = false
+    for _, n in ipairs(names) do if n == selectedPlayer then exists = true break end end
+    if not exists then selectedPlayer = nil end
+end
+
+-- Robust teleport function: accepts name string or Player instance
+local function teleportToPlayer(targetIdentifier)
+    local targetPlayer = nil
+
+    -- resolve identifier
+    if typeof(targetIdentifier) == "Instance" and targetIdentifier:IsA("Player") then
+        targetPlayer = targetIdentifier
+    else
+        targetPlayer = Players:FindFirstChild(tostring(targetIdentifier))
+    end
+
+    if not targetPlayer then
+        warn("[TP] Player target tidak ditemukan:", tostring(targetIdentifier))
+        return
+    end
+
+    -- wait up to 5s for target character & HRP
+    local targetChar = targetPlayer.Character
+    local waited = 0
+    while (not targetChar or not targetChar:FindFirstChild("HumanoidRootPart")) and waited < 5 do
+        targetChar = targetPlayer.Character
+        task.wait(0.5)
+        waited = waited + 0.5
+    end
+
+    if not targetChar or not targetChar:FindFirstChild("HumanoidRootPart") then
+        warn(string.format("[TP] Target '%s' belum spawn / HRP tidak ada.", targetPlayer.Name))
+        return
+    end
+
+    -- prepare my HRP
+    local myChar = player.Character or player.CharacterAdded:Wait()
+    local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+    if not myHRP then
+        warn("[TP] HRP local player tidak ditemukan.")
+        return
+    end
+
+    local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+    if not targetHRP then
+        warn("[TP] HRP target tidak ditemukan (lagi).")
+        return
+    end
+
+    local destCFrame = targetHRP.CFrame + Vector3.new(0, 2, 0)
+
+    -- try tween first (pcall), then fallback to direct set
+    local ok, err = pcall(function()
+        local tween = TweenService:Create(myHRP, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {CFrame = destCFrame})
+        tween:Play()
+        -- wait until finished or until tween stops existing (safe wait)
+        local finished = false
+        local conn
+        conn = tween.Completed:Connect(function() finished = true if conn then conn:Disconnect() end end)
+        local t0 = tick()
+        while not finished and tick() - t0 < 3 do
+            task.wait(0.05)
+        end
+        if conn then conn:Disconnect() end
+    end)
+
+    if not ok then
+        warn("[TP] Tween gagal, fallback direct CFrame:", err)
+        -- fallback direct set (safe pcall)
+        local s, e = pcall(function() myHRP.CFrame = destCFrame end)
+        if not s then warn("[TP] Fallback direct CFrame gagal:", e) end
+    else
+        print("[TP] Teleport to", targetPlayer.Name, "succeed (tween).")
+    end
+end
+
+-- Create dropdown and buttons (UI)
+dropdownPlayers = TpPlayerTab:CreateDropdown({
+    Name = "Pilih Player",
+    Options = getPlayerNames(),
+    CurrentOption = nil,
+    Callback = function(opt)
+        -- opt sometimes nil or "❌ Tidak ada player lain"
+        if opt and opt ~= "❌ Tidak ada player lain" then
+            selectedPlayer = opt
+        else
+            selectedPlayer = nil
+        end
+    end,
 })
+
+TpPlayerTab:CreateButton({
+    Name = "🔄 Refresh Daftar Player",
+    Callback = function()
+        local ok, err = pcall(updatePlayerDropdown)
+        if not ok then warn("[TP] Refresh gagal:", err) else print("[TP] Daftar player diperbarui.") end
+    end,
+})
+
+TpPlayerTab:CreateButton({
+    Name = "✨ Teleport ke Player",
+    Callback = function()
+        local ok, err = pcall(function()
+            if not selectedPlayer then
+                warn("[TP] Belum memilih player.")
+                return
+            end
+            teleportToPlayer(selectedPlayer)
+        end)
+        if not ok then warn("[TP] Callback Teleport error:", err) end
+    end,
+})
+
+-- Auto update dropdown saat pemain join/leave
+Players.PlayerAdded:Connect(function() pcall(updatePlayerDropdown) end)
+Players.PlayerRemoving:Connect(function() pcall(updatePlayerDropdown) end)
+
+-- initial populate
+pcall(updatePlayerDropdown)
